@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CardioSurv — Heart Failure Survival Predictor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Mono:wght@300;400;500&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:     #f0fdf8;
+    --white:  #ffffff;
+    --mint:   #d1fae5;
+    --mintl:  #ecfdf5;
+    --border: #a7f3d0;
+    --accent: #059669;
+    --acc2:   #047857;
+    --acc3:   #10b981;
+    --muted:  #6b7280;
+    --text:   #064e3b;
+    --label:  #065f46;
+    --red:    #ef4444;
+    --amber:  #d97706;
+    --green:  #059669;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Outfit',sans-serif;overflow-x:hidden;background:#fff;color:#111827;}
+  .page{min-height:100vh;display:none;flex-direction:column;}
+  .page.active{display:flex;}
+
+  /* ══ NAV ══ */
+  .home-nav{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 3rem;border-bottom:1px solid var(--border);background:#fff;position:sticky;top:0;z-index:10;box-shadow:0 1px 12px rgba(5,150,105,.06);}
+  .nav-logo{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;color:var(--acc2);display:flex;align-items:center;gap:.4rem;}
+  .nav-logo .heart{color:#ef4444;}
+  .nav-links{display:flex;gap:2rem;}
+  .nav-links a{font-size:.85rem;color:var(--muted);text-decoration:none;transition:color .2s;}
+  .nav-links a:hover{color:var(--accent);}
+  .nav-cta{background:var(--accent);border:none;border-radius:10px;padding:.5rem 1.3rem;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;transition:all .2s;}
+  .nav-cta:hover{background:var(--acc2);transform:translateY(-1px);}
+
+  /* ══ HERO ══ */
+  .hero-section{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:3rem;padding:5rem 3rem 4rem;max-width:1100px;margin:0 auto;width:100%;}
+  .hero-left{animation:fadeUp .7s .05s both;}
+  .brand-badge{display:inline-flex;align-items:center;gap:.45rem;background:var(--mint);border:1px solid #6ee7b7;border-radius:50px;padding:.32rem 1rem;font-family:'DM Mono',monospace;font-size:.68rem;color:var(--acc2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.4rem;}
+  .brand-badge .pulse{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse-dot 2s infinite;}
+  .hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.6rem,4.5vw,4rem);font-weight:300;line-height:1.1;letter-spacing:-.02em;color:#0f172a;margin-bottom:1.2rem;}
+  .hero-title em{font-style:normal;background:linear-gradient(135deg,#059669,#10b981,#34d399);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 4s linear infinite;}
+  .hero-sub{font-size:1rem;color:var(--muted);font-weight:300;line-height:1.8;margin-bottom:2rem;max-width:460px;}
+  .hero-sub strong{color:var(--acc2);font-weight:500;}
+  .cta-btn{display:inline-flex;align-items:center;gap:.8rem;background:linear-gradient(135deg,#065f46,#059669);border:none;border-radius:14px;padding:1rem 2.4rem;font-family:'Outfit',sans-serif;font-size:1rem;font-weight:500;color:#fff;cursor:pointer;position:relative;overflow:hidden;box-shadow:0 4px 24px rgba(5,150,105,.3);transition:all .25s;}
+  .cta-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(255,255,255,.12),transparent);transform:translateX(-100%);transition:transform .5s;}
+  .cta-btn:hover::before{transform:translateX(100%);}
+  .cta-btn:hover{box-shadow:0 6px 32px rgba(5,150,105,.45);transform:translateY(-2px);}
+  .cta-btn:active{transform:translateY(0);}
+  .hero-note{margin-top:.9rem;font-size:.78rem;color:#9ca3af;}
+  .hero-note span{color:var(--accent);font-weight:500;}
+
+  /* ══ HERO CARD ══ */
+  .hero-right{animation:fadeUp .7s .2s both;}
+  .hero-card{background:var(--mintl);border:1px solid var(--border);border-radius:24px;padding:1.8rem;box-shadow:0 8px 40px rgba(5,150,105,.1);}
+  .hc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;}
+  .hc-title{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;}
+  .hc-live{display:flex;align-items:center;gap:.35rem;font-size:.7rem;color:var(--accent);}
+  .hc-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse-dot 1.5s infinite;}
+  .ecg-wrap{background:#fff;border:1px solid var(--border);border-radius:12px;padding:.8rem 1.1rem;margin-bottom:1.1rem;}
+  .ecg-label{font-family:'DM Mono',monospace;font-size:.6rem;color:#9ca3af;letter-spacing:.08em;margin-bottom:.4rem;}
+  .ecg-line{fill:none;stroke:#059669;stroke-width:2;stroke-linecap:round;stroke-dasharray:600;animation:ecg-draw 2.5s ease-out both,ecg-march 6s 2.5s linear infinite;}
+  .hc-stats{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1.1rem;}
+  .hc-stat{background:#fff;border:1px solid var(--border);border-radius:12px;padding:.7rem .9rem;}
+  .hc-stat-val{font-family:'DM Mono',monospace;font-size:1.25rem;font-weight:500;color:var(--acc2);}
+  .hc-stat-lbl{font-size:.68rem;color:var(--muted);margin-top:.12rem;}
+  .model-row{margin-bottom:.55rem;}
+  .model-hd{display:flex;justify-content:space-between;margin-bottom:.28rem;}
+  .model-name{font-size:.76rem;color:#374151;}
+  .model-score{font-family:'DM Mono',monospace;font-size:.76rem;color:var(--acc2);font-weight:500;}
+  .model-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+  .model-fill{height:100%;border-radius:3px;background:linear-gradient(to right,#059669,#34d399);animation:bar-grow 1.4s ease both;}
+
+  /* ══ STATS STRIP ══ */
+  .stats-strip{background:var(--mintl);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:2.5rem 3rem;}
+  .stats-inner{display:flex;justify-content:center;gap:4rem;flex-wrap:wrap;max-width:1100px;margin:0 auto;}
+  .stat-item{text-align:center;}
+  .stat-item .val{font-family:'DM Mono',monospace;font-size:2rem;font-weight:500;color:var(--acc2);}
+  .stat-item .lbl{font-size:.74rem;color:var(--muted);margin-top:.3rem;letter-spacing:.06em;text-transform:uppercase;}
+
+  /* ══ FEATURES ══ */
+  .features-section{padding:4rem 3rem;max-width:1100px;margin:0 auto;width:100%;}
+  .section-head{text-align:center;margin-bottom:2.5rem;}
+  .section-head h2{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:400;color:#0f172a;}
+  .section-head p{color:var(--muted);font-size:.88rem;margin-top:.5rem;}
+  .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;}
+  .feat-card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:1.4rem;transition:box-shadow .3s,transform .3s;box-shadow:0 2px 12px rgba(5,150,105,.05);}
+  .feat-card:hover{box-shadow:0 8px 28px rgba(5,150,105,.12);transform:translateY(-3px);}
+  .feat-icon{width:38px;height:38px;border-radius:10px;background:var(--mint);display:flex;align-items:center;justify-content:center;margin-bottom:.9rem;font-size:1rem;}
+  .feat-card h3{font-size:.92rem;font-weight:500;color:#111827;margin-bottom:.35rem;}
+  .feat-card p{font-size:.8rem;color:var(--muted);line-height:1.65;}
+
+  /* ══ FOOTER ══ */
+  .home-footer{background:var(--mintl);border-top:1px solid var(--border);padding:1.4rem 3rem;text-align:center;font-size:.78rem;color:var(--muted);}
+  .home-footer strong{color:var(--acc2);}
+
+  /* ══ PREDICTOR PAGE ══ */
+  #page-predict{background:var(--bg);}
+  .pred-header{background:#fff;border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 1px 12px rgba(5,150,105,.08);}
+  .pred-logo{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:600;color:var(--acc2);display:flex;align-items:center;gap:.5rem;}
+  .pred-logo .heart{color:#ef4444;}
+  .pred-logo .tag{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--accent);background:var(--mint);padding:.2rem .5rem;border-radius:6px;}
+  .back-btn{background:#fff;border:1px solid var(--border);border-radius:8px;color:var(--accent);font-family:'Outfit',sans-serif;font-size:.85rem;padding:.4rem 1rem;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:.4rem;}
+  .back-btn:hover{background:var(--mint);border-color:var(--accent);}
+  .pred-body{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;padding:2rem;max-width:1100px;margin:0 auto;width:100%;flex:1;}
+  .panel{background:#fff;border:1px solid var(--border);border-radius:20px;padding:1.6rem;box-shadow:0 2px 20px rgba(5,150,105,.06);}
+  .panel-title{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;margin-bottom:1.4rem;display:flex;align-items:center;gap:.5rem;}
+  .panel-title::after{content:'';flex:1;height:1px;background:var(--border);}
+  .param-row{margin-bottom:1.3rem;}
+  .param-header{display:flex;justify-content:space-between;margin-bottom:.5rem;}
+  .param-name{font-size:.82rem;color:#374151;}
+  .param-val{font-family:'DM Mono',monospace;font-size:.82rem;color:var(--acc2);background:var(--mint);padding:.15rem .5rem;border-radius:6px;min-width:70px;text-align:right;}
+  input[type=range]{width:100%;appearance:none;height:4px;border-radius:2px;background:linear-gradient(to right,#059669 var(--pct,50%),#a7f3d0 var(--pct,50%));outline:none;cursor:pointer;}
+  input[type=range]::-webkit-slider-thumb{appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid #059669;box-shadow:0 0 6px rgba(5,150,105,.35);transition:transform .15s;}
+  input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
+  .toggle-row{margin-bottom:1.1rem;}
+  .toggle-lbl{font-size:.82rem;color:#374151;margin-bottom:.5rem;display:block;}
+  .toggle-grp{display:flex;gap:.5rem;}
+  .tog-btn{flex:1;padding:.5rem;background:#f9fafb;border:1px solid #d1d5db;border-radius:8px;color:#6b7280;font-family:'Outfit',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s;text-align:center;}
+  .tog-btn.active{background:var(--mint);border-color:var(--accent);color:var(--label);font-weight:500;}
+  .predict-btn{width:100%;padding:1rem;background:linear-gradient(135deg,#065f46,#059669);border:none;border-radius:14px;color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;font-weight:500;cursor:pointer;box-shadow:0 4px 20px rgba(5,150,105,.3);transition:all .25s;margin-top:.5rem;display:flex;align-items:center;justify-content:center;gap:.6rem;}
+  .predict-btn:hover{box-shadow:0 6px 28px rgba(5,150,105,.45);transform:translateY(-2px);}
+  .predict-btn:disabled{opacity:.5;transform:none;cursor:not-allowed;}
+  .result-panel{grid-column:1/-1;display:none;}
+  .result-panel.show{display:block;animation:fadeUp .6s ease both;}
+  .result-inner{display:grid;grid-template-columns:auto 1fr;gap:1.5rem;}
+  .risk-gauge{width:160px;height:160px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+  .gauge-svg{position:absolute;inset:0;width:100%;height:100%;}
+  .gauge-bg{fill:none;stroke:var(--mint);stroke-width:12;}
+  .gauge-fill{fill:none;stroke-width:12;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1),stroke .6s;}
+  .risk-pct{font-family:'DM Mono',monospace;font-size:2rem;font-weight:500;color:#065f46;}
+  .risk-lbl{font-size:.7rem;color:var(--muted);margin-top:.1rem;letter-spacing:.08em;}
+  .result-details{flex:1;}
+  .risk-badge{display:inline-block;padding:.3rem .9rem;border-radius:50px;font-size:.78rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:1rem;}
+  .risk-badge.low{background:var(--mint);color:#065f46;border:1px solid #6ee7b7;}
+  .risk-badge.moderate{background:#fef3c7;color:#92400e;border:1px solid #fcd34d;}
+  .risk-badge.high{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;}
+  .median-survival{font-size:1rem;color:var(--muted);margin-bottom:1rem;}
+  .median-survival strong{color:#064e3b;font-size:1.1rem;}
+  .timepoint-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;}
+  .tp-card{background:var(--mintl);border:1px solid var(--border);border-radius:12px;padding:.8rem;text-align:center;transition:border-color .3s;}
+  .tp-card:hover{border-color:var(--accent);}
+  .tp-time{font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);margin-bottom:.3rem;}
+  .tp-prob{font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:500;}
+  .curve-wrap{margin-top:1.2rem;}
+  .curve-canvas{width:100%;height:180px;}
+  .factors-list{display:flex;flex-direction:column;gap:.6rem;margin-top:.8rem;}
+  .factor-row{display:flex;align-items:center;gap:.8rem;}
+  .factor-name{font-size:.8rem;color:var(--muted);min-width:180px;}
+  .factor-bar-wrap{flex:1;height:6px;background:var(--mint);border-radius:3px;overflow:hidden;}
+  .factor-bar{height:100%;border-radius:3px;transition:width 1.2s ease;}
+  .spinner{width:22px;height:22px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+  @keyframes shimmer{0%{background-position:0%}100%{background-position:200%}}
+  @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.25}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes ecg-draw{from{stroke-dashoffset:600}to{stroke-dashoffset:0}}
+  @keyframes ecg-march{to{stroke-dashoffset:-600}}
+  @keyframes bar-grow{from{width:0}}
+
+  @media(max-width:800px){
+    .hero-section{grid-template-columns:1fr;padding:2.5rem 1.5rem;}
+    .hero-right{display:none;}
+    .feat-grid{grid-template-columns:1fr 1fr;}
+    .stats-inner{gap:2rem;}
+    .home-nav{padding:1rem 1.5rem;}
+    .nav-links{display:none;}
+    .pred-body{grid-template-columns:1fr;padding:1rem;}
+    .result-inner{grid-template-columns:1fr;}
+  }
+  @media(max-width:500px){.feat-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ PAGE 1: HOME ══════════════ -->
+<section id="page-home" class="page active">
+
+  <nav class="home-nav">
+    <div class="nav-logo"><span class="heart">♥</span> CardioSurv</div>
+    <div class="nav-links">
+    </div>
+    <button class="nav-cta" onclick="goPredict()">Launch Predictor →</button>
+  </nav>
+
+  <div class="hero-section">
+    <div class="hero-left">
+      <div class="brand-badge"><span class="pulse"></span> AI-Powered Clinical Analysis</div>
+      <h1 class="hero-title">Heart Failure<br><em>Survival Intelligence</em></h1>
+      <p class="hero-sub">
+        Predict patient survival outcomes using an ensemble of survival models —
+        Random Survival Forest, Cox PH &amp; DeepSurv — trained on
+        <strong>299 clinical records</strong> with a best C-index of <strong>0.8336</strong>.
+      </p>
+      <button class="cta-btn" onclick="goPredict()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Begin Survival Analysis
+      </button>
+      <div class="hero-note">No login required · <span>Free to use</span> · Results in seconds</div>
+    </div>
+
+    <div class="hero-right">
+      <div class="hero-card">
+        <div class="hc-head">
+          <div class="hc-title">◈ RSF Model Active</div>
+          <div class="hc-live"><span class="hc-dot"></span> Live</div>
+        </div>
+        <div class="ecg-wrap">
+          <div class="ecg-label">ECG Signal — Sinus Rhythm</div>
+          <svg width="100%" viewBox="0 0 420 52" style="overflow:visible">
+            <path class="ecg-line" d="M0,26 L35,26 L44,26 L48,8 L53,46 L57,26 L70,26 L105,26 L114,26 L118,8 L123,46 L127,26 L140,26 L175,26 L184,26 L188,8 L193,46 L197,26 L210,26 L245,26 L254,26 L258,8 L263,46 L267,26 L280,26 L315,26 L324,26 L328,8 L333,46 L337,26 L350,26 L385,26 L394,26 L398,8 L403,46 L407,26 L420,26"/>
+          </svg>
+        </div>
+        <div class="hc-stats">
+          <div class="hc-stat"><div class="hc-stat-val">0.8336</div><div class="hc-stat-lbl">C-Index (RSF)</div></div>
+          <div class="hc-stat"><div class="hc-stat-val">299</div><div class="hc-stat-lbl">Patients</div></div>
+          <div class="hc-stat"><div class="hc-stat-val">11</div><div class="hc-stat-lbl">Features</div></div>
+          <div class="hc-stat"><div class="hc-stat-val">5</div><div class="hc-stat-lbl">Models</div></div>
+        </div>
+        <div class="model-row"><div class="model-hd"><span class="model-name">Random Survival Forest</span><span class="model-score">0.8336</span></div><div class="model-track"><div class="model-fill" style="width:83.36%"></div></div></div>
+        <div class="model-row"><div class="model-hd"><span class="model-name">Gradient Boosting SA</span><span class="model-score">0.81</span></div><div class="model-track"><div class="model-fill" style="width:81%;animation-delay:.15s"></div></div></div>
+        <div class="model-row"><div class="model-hd"><span class="model-name">Cox Proportional Hazards</span><span class="model-score">0.78</span></div><div class="model-track"><div class="model-fill" style="width:78%;animation-delay:.3s"></div></div></div>
+        <div class="model-row"><div class="model-hd"><span class="model-name">DeepSurv Neural Network</span><span class="model-score">0.76</span></div><div class="model-track"><div class="model-fill" style="width:76%;animation-delay:.45s"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stats-inner">
+      <div class="stat-item"><div class="val">0.8336</div><div class="lbl">Best C-Index</div></div>
+      <div class="stat-item"><div class="val">299</div><div class="lbl">Clinical Records</div></div>
+      <div class="stat-item"><div class="val">11</div><div class="lbl">Features Used</div></div>
+      <div class="stat-item"><div class="val">5</div><div class="lbl">Models Trained</div></div>
+      <div class="stat-item"><div class="val">300</div><div class="lbl">Day Horizon</div></div>
+    </div>
+  </div>
+
+  <div class="features-section">
+    <div class="section-head">
+      <h2>What CardioSurv Analyses</h2>
+      <p>Built on the Heart Failure Clinical Records dataset using rigorous survival analysis techniques</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-card"><div class="feat-icon">🌲</div><h3>Random Survival Forest</h3><p>Ensemble tree-based model capturing complex non-linear interactions between clinical features. Top performer with C-index 0.8336.</p></div>
+      <div class="feat-card"><div class="feat-icon">📈</div><h3>Kaplan–Meier Curves</h3><p>Non-parametric survival curves visualising patient survival probability across time, stratified by risk groups.</p></div>
+      <div class="feat-card"><div class="feat-icon">🧮</div><h3>Cox Proportional Hazards</h3><p>Semi-parametric regression model estimating the hazard ratio contribution of each clinical variable independently.</p></div>
+      <div class="feat-card"><div class="feat-icon">🧠</div><h3>DeepSurv Neural Network</h3><p>Deep learning Cox model that learns non-linear feature representations for improved survival prediction accuracy.</p></div>
+      <div class="feat-card"><div class="feat-icon">📊</div><h3>C-Index Evaluation</h3><p>Concordance index measuring discriminative ability — probability the model correctly ranks two patients by survival time.</p></div>
+      <div class="feat-card"><div class="feat-icon">⚗️</div><h3>Feature Engineering</h3><p>19 engineered features including kidney-heart interaction scores and risk composites, improving model performance significantly.</p></div>
+    </div>
+  </div>
+
+
+</section>
+
+<!-- ══════════════ PAGE 2: PREDICTOR ══════════════ -->
+<section id="page-predict" class="page">
+
+  <header class="pred-header">
+    <div class="pred-logo"><span class="heart">♥</span> CardioSurv <span class="tag">RSF · v2.0</span></div>
+    <button class="back-btn" onclick="goHome()">← Back to Home</button>
+  </header>
+
+  <div class="pred-body">
+    <div class="panel">
+      <div class="panel-title">Continuous Parameters</div>
+      <div class="param-row"><div class="param-header"><span class="param-name">Age</span><span class="param-val" id="v-age">60 yrs</span></div><input type="range" id="s-age" min="20" max="95" value="60" oninput="updateSlider('age',this.value,' yrs')"/></div>
+      <div class="param-row"><div class="param-header"><span class="param-name">Ejection Fraction</span><span class="param-val" id="v-ef">38 %</span></div><input type="range" id="s-ef" min="10" max="80" value="38" oninput="updateSlider('ef',this.value,' %')"/></div>
+      <div class="param-row"><div class="param-header"><span class="param-name">Serum Creatinine</span><span class="param-val" id="v-cr">1.2 mg/dL</span></div><input type="range" id="s-cr" min="5" max="100" value="12" oninput="updateSlider('cr',this.value,' mg/dL',10)"/></div>
+      <div class="param-row"><div class="param-header"><span class="param-name">Serum Sodium</span><span class="param-val" id="v-na">136 mEq/L</span></div><input type="range" id="s-na" min="110" max="150" value="136" oninput="updateSlider('na',this.value,' mEq/L')"/></div>
+      <div class="param-row"><div class="param-header"><span class="param-name">Creatinine Phosphokinase</span><span class="param-val" id="v-cpk">250 U/L</span></div><input type="range" id="s-cpk" min="10" max="8000" value="250" oninput="updateSlider('cpk',this.value,' U/L')"/></div>
+      <div class="param-row"><div class="param-header"><span class="param-name">Platelets</span><span class="param-val" id="v-plt">250k /μL</span></div><input type="range" id="s-plt" min="50" max="800" value="250" oninput="updateSlider('plt',this.value,'k /μL')"/></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Clinical Flags</div>
+      <div class="toggle-row"><span class="toggle-lbl">Anaemia</span><div class="toggle-grp"><button class="tog-btn active" id="an-0" onclick="setToggle('an',0)">No</button><button class="tog-btn" id="an-1" onclick="setToggle('an',1)">Yes</button></div></div>
+      <div class="toggle-row"><span class="toggle-lbl">Diabetes</span><div class="toggle-grp"><button class="tog-btn active" id="db-0" onclick="setToggle('db',0)">No</button><button class="tog-btn" id="db-1" onclick="setToggle('db',1)">Yes</button></div></div>
+      <div class="toggle-row"><span class="toggle-lbl">High Blood Pressure</span><div class="toggle-grp"><button class="tog-btn active" id="hb-0" onclick="setToggle('hb',0)">No</button><button class="tog-btn" id="hb-1" onclick="setToggle('hb',1)">Yes</button></div></div>
+      <div class="toggle-row"><span class="toggle-lbl">Sex</span><div class="toggle-grp"><button class="tog-btn" id="sx-0" onclick="setToggle('sx',0)">Female</button><button class="tog-btn active" id="sx-1" onclick="setToggle('sx',1)">Male</button></div></div>
+      <div class="toggle-row"><span class="toggle-lbl">Smoking</span><div class="toggle-grp"><button class="tog-btn active" id="sm-0" onclick="setToggle('sm',0)">No</button><button class="tog-btn" id="sm-1" onclick="setToggle('sm',1)">Yes</button></div></div>
+      <button class="predict-btn" id="predict-btn" onclick="runPrediction()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Predict Survival
+      </button>
+    </div>
+
+    <div class="panel result-panel" id="result-panel">
+      <div class="panel-title">Survival Prediction Result</div>
+      <div class="result-inner" id="result-inner"></div>
+      <div class="curve-wrap">
+        <div style="font-family:'DM Mono',monospace;font-size:.65rem;color:#9ca3af;letter-spacing:.1em;margin-bottom:.6rem;">◈ KAPLAN–MEIER SURVIVAL CURVE</div>
+        <canvas id="curve-canvas" class="curve-canvas" height="180"></canvas>
+      </div>
+      <div style="margin-top:1.4rem">
+        <div class="panel-title" style="margin-bottom:.8rem">Key Risk Factors</div>
+        <div class="factors-list" id="factors-list"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+function goPredict(){document.getElementById('page-home').classList.remove('active');document.getElementById('page-predict').classList.add('active');initSliders();window.scrollTo(0,0);}
+function goHome(){document.getElementById('page-predict').classList.remove('active');document.getElementById('page-home').classList.add('active');window.scrollTo(0,0);}
+
+function initSliders(){document.querySelectorAll('input[type=range]').forEach(el=>{const p=((el.value-el.min)/(el.max-el.min)*100).toFixed(1)+'%';el.style.setProperty('--pct',p);});}
+function updateSlider(id,val,suffix,div){const el=document.getElementById('s-'+id);el.style.setProperty('--pct',((el.value-el.min)/(el.max-el.min)*100).toFixed(1)+'%');document.getElementById('v-'+id).textContent=(div?(val/div).toFixed(1):val)+suffix;}
+
+const state={an:0,db:0,hb:0,sx:1,sm:0};
+function setToggle(key,val){state[key]=val;document.getElementById(key+'-0').classList.toggle('active',val===0);document.getElementById(key+'-1').classList.toggle('active',val===1);}
+
+function getInputs(){return{age:+document.getElementById('s-age').value,ef:+document.getElementById('s-ef').value,creatinine:+document.getElementById('s-cr').value/10,sodium:+document.getElementById('s-na').value,cpk:+document.getElementById('s-cpk').value,platelets:+document.getElementById('s-plt').value*1000,anaemia:state.an,diabetes:state.db,hbp:state.hb,sex:state.sx,smoking:state.sm};}
+
+function getRisk(m){if(m<0.25)return{level:'low',label:'Low Risk',color:'#059669'};if(m<0.55)return{level:'moderate',label:'Moderate Risk',color:'#d97706'};return{level:'high',label:'High Risk',color:'#dc2626'};}
+
+async function runPrediction(){
+  const btn=document.getElementById('predict-btn');
+  btn.disabled=true;btn.innerHTML=`<div class="spinner"></div> Analysing...`;
+  try{
+    const inp=getInputs();
+    const response=await fetch('/predict',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        age:inp.age,
+        anaemia:inp.anaemia,
+        creatinine_phosphokinase:inp.cpk,
+        diabetes:inp.diabetes,
+        ejection_fraction:inp.ef,
+        high_blood_pressure:inp.hbp,
+        platelets:inp.platelets,
+        serum_creatinine:inp.creatinine,
+        serum_sodium:inp.sodium,
+        sex:inp.sex,
+        smoking:inp.smoking
+      })
+    });
+    if(!response.ok)throw new Error('Server error: '+response.status);
+    const data=await response.json();
+    // Convert API response to format showResult expects
+    const times=Object.keys(data.survival_probs).map(Number).sort((a,b)=>a-b);
+    const surv=times.map(t=>data.survival_probs[String(t)]);
+    // Estimate median survival from survival probs
+    let med=270;
+    for(let i=0;i<times.length;i++){if(surv[i]<0.5){med=times[i];break;}}
+    const res={surv,times,mortalityProb:data.mortality_prob,med,flags:data.flags};
+    const risk=getRisk(data.mortality_prob);
+    showResult(inp,res,risk);
+  }catch(err){
+    alert('Prediction failed: '+err.message+'\n\nMake sure the backend server is running.');
+  }
+  btn.disabled=false;btn.innerHTML=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Recompute`;
+}
+
+function showResult(inp,res,risk){
+  document.getElementById('result-panel').classList.add('show');
+  const m=Math.round(res.mortalityProb*100),C=2*Math.PI*54,off=C*(1-m/100);
+  document.getElementById('result-inner').innerHTML=`
+    <div class="risk-gauge">
+      <svg class="gauge-svg" viewBox="0 0 120 120">
+        <circle class="gauge-bg" cx="60" cy="60" r="54" stroke-dasharray="${C}" transform="rotate(-90 60 60)"/>
+        <circle class="gauge-fill" cx="60" cy="60" r="54" stroke="${risk.color}" stroke-dasharray="${C}" stroke-dashoffset="${C}" transform="rotate(-90 60 60)" id="gauge-arc"/>
+      </svg>
+      <div class="risk-pct" style="color:${risk.color}">${m}%</div>
+      <div class="risk-lbl">MORTALITY RISK</div>
+    </div>
+    <div class="result-details">
+      <div class="risk-badge ${risk.level}">${risk.label}</div>
+      <div class="median-survival">Median Survival: <strong>${res.med>299?'>300':res.med} days</strong> &nbsp;|&nbsp; 6-month survival: <strong style="color:${risk.color}">${Math.round(res.surv[5]*100)}%</strong></div>
+      <div class="timepoint-grid">${res.times.slice(0,6).map(t=>{const p=Math.round(res.surv[res.times.indexOf(t)]*100);const c=p>70?'#059669':p>40?'#d97706':'#dc2626';return`<div class="tp-card"><div class="tp-time">${t} DAYS</div><div class="tp-prob" style="color:${c}">${p}%</div></div>`;}).join('')}</div>
+    </div>`;
+  setTimeout(()=>{document.getElementById('gauge-arc').style.strokeDashoffset=off;},100);
+  drawCurve(res);drawFactors(inp);
+  document.getElementById('result-panel').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function drawCurve(res){
+  const cv=document.getElementById('curve-canvas'),ctx=cv.getContext('2d');
+  const W=cv.offsetWidth||600;cv.width=W*devicePixelRatio;cv.height=180*devicePixelRatio;ctx.scale(devicePixelRatio,devicePixelRatio);
+  const w=W,h=180,p={l:40,r:20,t:15,b:30};ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle='rgba(167,243,208,0.8)';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=p.t+(h-p.t-p.b)*i/4;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(w-p.r,y);ctx.stroke();}
+  const pts=res.times.map((t,i)=>({x:p.l+(w-p.l-p.r)*i/(res.times.length-1),y:p.t+(h-p.t-p.b)*(1-res.surv[i])}));
+  const g=ctx.createLinearGradient(0,p.t,0,h-p.b);g.addColorStop(0,'rgba(5,150,105,0.2)');g.addColorStop(1,'rgba(5,150,105,0.02)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(pts[0].x,h-p.b);pts.forEach(q=>ctx.lineTo(q.x,q.y));ctx.lineTo(pts[pts.length-1].x,h-p.b);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#059669';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.beginPath();pts.forEach((q,i)=>i===0?ctx.moveTo(q.x,q.y):ctx.lineTo(q.x,q.y));ctx.stroke();
+  pts.forEach(q=>{ctx.beginPath();ctx.arc(q.x,q.y,3.5,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#059669';ctx.lineWidth=2;ctx.stroke();});
+  ctx.fillStyle='#9ca3af';ctx.font=`10px 'DM Mono',monospace`;ctx.textAlign='center';
+  [0,.25,.5,.75,1].forEach(v=>{const y=p.t+(h-p.t-p.b)*v;ctx.fillText(Math.round((1-v)*100)+'%',20,y+4);});
+  res.times.forEach((t,i)=>{if(i%2===0)ctx.fillText(t,pts[i].x,h-p.b+14);});
+}
+
+function drawFactors(inp){
+  const fs=[
+    {name:'Ejection Fraction (inv.)',val:Math.max(0,(40-Math.min(inp.ef,40))/40),color:'#dc2626'},
+    {name:'Serum Creatinine',val:Math.min(1,Math.max(0,inp.creatinine-1)/4),color:'#d97706'},
+    {name:'Age',val:Math.min(1,(inp.age-20)/75),color:'#7c3aed'},
+    {name:'Serum Sodium (inv.)',val:Math.min(1,Math.max(0,135-inp.sodium)/25),color:'#0284c7'},
+    {name:'CPK Enzyme',val:Math.min(1,inp.cpk/8000),color:'#db2777'},
+    {name:'Clinical Flags',val:(inp.anaemia+inp.diabetes+inp.hbp+inp.smoking)/4,color:'#059669'},
+  ];
+  document.getElementById('factors-list').innerHTML=fs.map(f=>`<div class="factor-row"><div class="factor-name">${f.name}</div><div class="factor-bar-wrap"><div class="factor-bar" style="width:0%;background:${f.color}" data-w="${Math.round(f.val*100)}"></div></div><span style="font-family:'DM Mono',monospace;font-size:.75rem;color:${f.color};min-width:36px;text-align:right">${Math.round(f.val*100)}%</span></div>`).join('');
+  setTimeout(()=>{document.querySelectorAll('.factor-bar').forEach(b=>b.style.width=b.dataset.w+'%');},100);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('input[type=range]').forEach(el=>{
+    el.addEventListener('input',()=>el.style.setProperty('--pct',((el.value-el.min)/(el.max-el.min)*100).toFixed(1)+'%'));
+    el.style.setProperty('--pct',((el.value-el.min)/(el.max-el.min)*100).toFixed(1)+'%');
+  });
+});
+</script>
+</body>
+</html>
